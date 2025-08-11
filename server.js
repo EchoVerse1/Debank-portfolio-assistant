@@ -13,7 +13,7 @@ const evmWallets = [
   "0x980F71B0D813d6cC81a248e39964c8D1a7BE01E5"
 ];
 const solWallets = [
-  "INSERT_SOLANA_WALLET_1",
+  "4VsCWFtg51VahTDfuZh52Hjkp7RpnWFhfjnhcfFMAjXK",
   "INSERT_SOLANA_WALLET_2"
 ];
 

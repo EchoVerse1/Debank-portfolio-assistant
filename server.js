@@ -4,8 +4,12 @@ import fetch from "node-fetch";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Your Moralis API key from Render environment variables
+// Read API key from Render environment variables
 const MORALIS_API = process.env.MORALIS_API;
+
+if (!MORALIS_API) {
+  console.warn("⚠️ MORALIS_API key not set in environment variables! Add it in Render settings.");
+}
 
 // List of wallets to track
 const wallets = [
@@ -13,18 +17,18 @@ const wallets = [
   "0x980F71B0D813d6cC81a248e39964c8D1a7BE01E5"
 ];
 
-// Chains you want to check (EVM only for now)
+// Chains to check (EVM only)
 const chains = [
-  "eth",    // Ethereum
-  "bsc",    // Binance Smart Chain
-  "polygon",// Polygon
-  "avax",   // Avalanche
-  "fantom", // Fantom
-  "arbitrum",// Arbitrum
-  "optimism"// Optimism
+  "eth",      // Ethereum
+  "bsc",      // Binance Smart Chain
+  "polygon",  // Polygon
+  "avax",     // Avalanche
+  "fantom",   // Fantom
+  "arbitrum", // Arbitrum
+  "optimism"  // Optimism
 ];
 
-// Fetch token balances for a wallet on a specific chain
+// Fetch token balances from Moralis API
 async function fetchBalances(chain, wallet) {
   try {
     const url = `https://deep-index.moralis.io/api/v2.2/${wallet}/erc20?chain=${chain}`;
@@ -55,7 +59,7 @@ async function fetchBalances(chain, wallet) {
   }
 }
 
-// Route to view portfolio
+// Route: check portfolio
 app.get("/portfolio", async (req, res) => {
   const portfolio = [];
 
@@ -69,10 +73,20 @@ app.get("/portfolio", async (req, res) => {
   res.json(portfolio);
 });
 
+// Route: check API key status
+app.get("/testkey", (req, res) => {
+  res.send({
+    MORALIS_API: MORALIS_API ? "✅ Key is set" : "❌ Key is missing"
+  });
+});
+
+// Root route
 app.get("/", (req, res) => {
   res.send("Crypto Portfolio Tracker is live 🚀");
 });
 
+// Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+

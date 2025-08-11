@@ -10,10 +10,7 @@ const wallets = [
   "0x980F71B0D813d6cC81a248e39964c8D1a7BE01E5"
 ];
 
-// List of chains to check (Debank free supports these)
-const chains = ["eth", "bsc", "matic", "arb", "op", "avax", "ftm"];
-
-// Helper function to fetch from Debank Free API
+// Helper function for free Debank API
 async function fetchDebankFree(endpoint) {
   const url = `https://api.debank.com${endpoint}`;
   const res = await fetch(url, { headers: { accept: "application/json" } });
@@ -29,33 +26,37 @@ app.get("/", async (req, res) => {
     const results = [];
 
     for (const wallet of wallets) {
-      let walletData = { wallet, chains: [], totalUsdValue: 0 };
+      const tokens = await fetchDebankFree(`/v1/user/all_token_list?id=${wallet}`);
 
-      for (const chain of chains) {
-        const tokens = await fetchDebankFree(
-          `/v1/user/token_list?id=${wallet}&chain_id=${chain}`
-        );
+      // Group tokens by chain
+      const chainMap = {};
+      let totalUsdValue = 0;
 
-        let chainUsdValue = 0;
-        if (Array.isArray(tokens)) {
-          for (const token of tokens) {
-            const price = token?.price || 0;
-            const amount = token?.amount || 0;
-            chainUsdValue += price * amount;
-          }
+      for (const token of tokens) {
+        const chain = token.chain || "unknown";
+        const price = token.price || 0;
+        const amount = token.amount || 0;
+        const usdValue = price * amount;
+
+        totalUsdValue += usdValue;
+
+        if (!chainMap[chain]) {
+          chainMap[chain] = { chain, tokenCount: 0, usdValue: 0, tokens: [] };
         }
 
-        walletData.totalUsdValue += chainUsdValue;
-
-        walletData.chains.push({
-          chain,
-          tokenCount: tokens.length || 0,
-          usdValue: Number(chainUsdValue.toFixed(2)),
-          tokens
-        });
+        chainMap[chain].tokenCount++;
+        chainMap[chain].usdValue += usdValue;
+        chainMap[chain].tokens.push(token);
       }
 
-      results.push(walletData);
+      results.push({
+        wallet,
+        totalUsdValue: Number(totalUsdValue.toFixed(2)),
+        chains: Object.values(chainMap).map(c => ({
+          ...c,
+          usdValue: Number(c.usdValue.toFixed(2))
+        }))
+      });
     }
 
     res.json({ wallets: results });

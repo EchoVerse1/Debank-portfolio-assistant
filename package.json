@@ -1,5 +1,5 @@
 {
-  "name": "debank-tracker",
+  "name": "crypto-portfolio-tracker",
   "version": "1.0.0",
   "type": "module",
   "main": "server.js",
